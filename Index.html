@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Карта социальных привилегий</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #f3f5fa;
+      color: #263247;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 24px;
+      background: white;
+      border-radius: 20px;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    p {
+      line-height: 1.5;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 560px;
+      width: 100%;
+    }
+
+    .note {
+      color: #607086;
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      main { padding: 12px; }
+      .chart-container { height: 430px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Карта социальных привилегий</h1>
+
+    <p>
+      Чем дальше точка от центра, тем больше социальных
+      преимуществ в соответствующей сфере.
+    </p>
+
+    <div class="chart-container">
+      <canvas
+        id="privilegeChart"
+        role="img"
+        aria-label="Радарная диаграмма социальных преимуществ по десяти сферам">
+        Для отображения диаграммы необходим JavaScript.
+      </canvas>
+    </div>
+
+    <p class="note">
+      Демонстрационные данные. Это инструмент для рефлексии,
+      а не диагностический тест. Результат не оценивает
+      ценность человека, его усилия или тяжесть пережитого.
+    </p>
+  </main>
+
+  <script>
+    // Массивы внутри labels позволяют переносить длинные подписи.
+    const labels = [
+      ["Материальная", "обеспеченность"],
+      ["Жилищная", "защищённость"],
+      ["Гражданство и", "правовой статус"],
+      ["Язык и признание", "квалификации"],
+      ["Образовательные", "возможности"],
+      ["Здоровье и", "доступность среды"],
+      ["Гендер"],
+      ["Сексуальная", "ориентация"],
+      ["Этническое", "происхождение"],
+      ["Семейные ресурсы", "и социальные связи"]
+    ];
+
+    // Баллы от 0 до 4 в том же порядке, что и подписи.
+    const scores = [3, 2, 4, 1.5, 3.5, 2, 3, 1, 2.5, 3];
+
+    const chart = new Chart(
+      document.getElementById("privilegeChart"),
+      {
+        type: "radar",
+
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Социальные преимущества",
+            data: scores,
+
+            fill: true,
+            backgroundColor: "rgba(76, 110, 245, 0.25)",
+            borderColor: "#4c6ef5",
+            borderWidth: 2,
+
+            pointBackgroundColor: "#4c6ef5",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+
+            tension: 0
+          }]
+        },
+
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+
+          scales: {
+            r: {
+              min: 0,
+              max: 4,
+
+              ticks: {
+                stepSize: 1,
+                color: "#607086",
+                backdropColor: "rgba(255, 255, 255, 0.8)"
+              },
+
+              grid: {
+                color: "#dce2ee"
+              },
+
+              angleLines: {
+                color: "#dce2ee"
+              },
+
+              pointLabels: {
+                color: "#263247",
+                font: {
+                  size: 11
+                },
+                padding: 10
+              }
+            }
+          },
+
+          plugins: {
+            legend: {
+              display: false
+            },
+
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  const label = labels[items[0].dataIndex];
+                  return Array.isArray(label)
+                    ? label.join(" ")
+                    : label;
+                },
+
+                label: function(context) {
+                  return "Преимущества: " + context.raw + " из 4";
+                }
+              }
+            }
+          }
+        }
+      }
+    );
+
+    // После подсчёта ответов можно обновить диаграмму:
+    function updateResults(newScores) {
+      if (
+        newScores.length !== labels.length ||
+        newScores.some(value =>
+          !Number.isFinite(value) || value < 0 || value > 4
+        )
+      ) {
+        throw new Error("Нужно передать 10 чисел от 0 до 4.");
+      }
+
+      chart.data.datasets[0].data = [...newScores];
+      chart.update();
+    }
+
+    // Пример:
+    // updateResults([4, 3, 2, 1, 4, 3, 2, 3, 1, 2]);
+  </script>
+</body>
+</html>
